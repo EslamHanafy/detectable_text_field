@@ -33,7 +33,7 @@ const urlRegexContent = "((http|https)://)?(www.)?" +
     "{2,6}\\b([-a-zA-Z0-9@:%" +
     "._\\+~#?&//=]*)";
 
-/// Regular expression to extract hashtag
+/// Regular expression to extract hashtag with spaces like (#tag1 #tag2)
 ///
 /// Supports English, Japanese, Korean, Spanish, Arabic, and Thai
 final hashTagRegExp = RegExp(
@@ -41,8 +41,21 @@ final hashTagRegExp = RegExp(
   multiLine: true,
 );
 
+/// Regular expression to extract hashtag without spaces like (#tag1#tag2)
+///
+/// Supports English, Japanese, Korean, Spanish, Arabic, and Thai
+final hashTagRegExpWithoutSpaces = RegExp(
+  "(#([$detectionContentLetters]+))",
+  multiLine: true,
+);
+
 final atSignRegExp = RegExp(
   "(?!\\n)(?:^|\\s)([@]([$detectionContentLetters]+))",
+  multiLine: true,
+);
+
+final atSignRegExpWithoutSpaces = RegExp(
+  "([@]([$detectionContentLetters]+))",
   multiLine: true,
 );
 
@@ -57,8 +70,19 @@ final hashTagAtSignRegExp = RegExp(
   multiLine: true,
 );
 
+/// Regular expression when you select decorateAtSign
+final hashTagAtSignRegExpWithoutSpaces = RegExp(
+  "([#@]([$detectionContentLetters]+))",
+  multiLine: true,
+);
+
 final hashTagUrlRegExp = RegExp(
   "(?!\\n)(?:^|\\s)([#]([$detectionContentLetters]+))|$urlRegexContent",
+  multiLine: true,
+);
+
+final hashTagUrlRegExpWithoutSpaces = RegExp(
+  "([#]([$detectionContentLetters]+))|$urlRegexContent",
   multiLine: true,
 );
 
@@ -67,34 +91,50 @@ final hashTagAtSignUrlRegExp = RegExp(
   multiLine: true,
 );
 
+final hashTagAtSignUrlRegExpWithoutSpaces = RegExp(
+  "([#@]([$detectionContentLetters]+))|$urlRegexContent",
+  multiLine: true,
+);
+
 final atSignUrlRegExp = RegExp(
   "(?!\\n)(?:^|\\s)([@]([$detectionContentLetters]+))|$urlRegexContent",
   multiLine: true,
 );
 
+final atSignUrlRegExpWithoutSpaces = RegExp(
+  "([@]([$detectionContentLetters]+))|$urlRegexContent",
+  multiLine: true,
+);
+
+/// When `ignoreSpaces` = true it will detect elements without spaces like this (#tag1#tag2) and when it = false it will require spaces like this (#tag1 #tag2)
 RegExp? detectionRegExp({
   bool hashtag = true,
   bool atSign = true,
   bool url = true,
+  bool ignoreSpaces = true,
 }) {
   if (hashtag == true && atSign == true && url == true) {
-    return hashTagAtSignUrlRegExp;
+    return ignoreSpaces
+        ? hashTagAtSignUrlRegExpWithoutSpaces
+        : hashTagAtSignUrlRegExp;
   }
   if (hashtag == true) {
     if (atSign == true) {
-      return hashTagAtSignRegExp;
+      return ignoreSpaces
+          ? hashTagAtSignRegExpWithoutSpaces
+          : hashTagAtSignRegExp;
     }
     if (url == true) {
-      return hashTagUrlRegExp;
+      return ignoreSpaces ? hashTagUrlRegExpWithoutSpaces : hashTagUrlRegExp;
     }
-    return hashTagRegExp;
+    return ignoreSpaces ? hashTagRegExpWithoutSpaces : hashTagRegExp;
   }
 
   if (atSign == true) {
     if (url == true) {
-      return atSignUrlRegExp;
+      return ignoreSpaces ? atSignUrlRegExpWithoutSpaces : atSignUrlRegExp;
     }
-    return atSignRegExp;
+    return ignoreSpaces ? atSignRegExpWithoutSpaces : atSignRegExp;
   }
 
   if (url == true) {
